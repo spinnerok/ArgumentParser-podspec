@@ -1,0 +1,28 @@
+name: antlr4
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "*"
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Publish CocoaPod
+        if: github.ref_type == 'tag'
+        env:
+          COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
+        run: |
+          set -eo pipefail
+          export ARGUMENT_PARSER_VERSION=${{ github.ref_name }}
+          pod spec lint ArgumentParserToolInfo.podspec --skip-import-validation --allow-warnings
+          pod trunk push ArgumentParserToolInfo.podspec --skip-import-validation --allow-warnings
+          pod spec lint ArgumentParser.podspec --skip-import-validation --allow-warnings
+          pod trunk push ArgumentParser.podspec --skip-import-validation --allow-warnings
